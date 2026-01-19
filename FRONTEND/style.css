@@ -11,29 +11,111 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    padding: 40px 20px;
 }
 
 h1 {
     margin-bottom: 20px;
+    color: #2d5a27;
 }
 
 .search-box {
     display: flex;
     gap: 10px;
+    margin-bottom: 30px;
 }
 
 .search-box input {
-    padding: 10px;
-    width: 250px;
+    padding: 12px 15px;
+    width: 300px;
     font-size: 16px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: #2d5a27;
 }
 
 .search-box button {
-    padding: 10px 15px;
+    padding: 12px 25px;
     font-size: 16px;
     cursor: pointer;
+    background-color: #2d5a27;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    transition: background-color 0.3s;
+}
+
+.search-box button:hover {
+    background-color: #1e3d1a;
+}
+
+.loading {
+    color: #666;
+    font-size: 18px;
+    margin: 20px 0;
+}
+
+.results {
+    width: 100%;
+    max-width: 800px;
+}
+
+.results h2 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.card h3 {
+    margin: 0 0 15px 0;
+    color: #2d5a27;
+}
+
+.card table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.card th, .card td {
+    padding: 10px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.card th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #555;
+}
+
+.card tr:last-child td {
+    border-bottom: none;
+}
+
+.no-data {
+    color: #999;
+    font-style: italic;
+}
+
+.error {
+    background: #fee;
+    color: #c00;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
 }
 
 footer {
