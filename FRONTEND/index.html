@@ -2,122 +2,70 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Écologie France - Indicateurs par commune</title>
+    <title>Indicateurs Écologiques</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
     <div class="container">
         <h1>🌿 Indicateurs Écologiques</h1>
-
-        <div class="search-box">
-            <input type="text" id="commune-input" placeholder="Rechercher votre commune ...">
-            <button onclick="rechercher()">OK</button>
-        </div>
-
-        <div id="loading" class="loading" style="display:none;">Chargement...</div>
         
-        <div id="results" class="results"></div>
+        <div class="search-box">
+            <input type="text" id="commune" placeholder="Nom de la commune">
+            <button onclick="rechercher()">Rechercher</button>
+        </div>
+        
+        <div id="resultats"></div>
     </div>
 
-    <footer>
-        <p>© 2026 - répertorie les actions écologiques de chaque commune</p>
-        <p>🚨 Émissions GES | 🚲 Aménagements cyclables | 🔌 Bornes recharge | 🚗 Véhicules électriques</p>
-        <p><a href="https://www.data.gouv.fr/dataservices/hub-dindicateurs-territoriaux-de-transition-ecologique" style="color:#fff;">source</a></p>
-    </footer>
-
     <script>
-        const API_BASE = 'http://127.0.0.1:8000';
-
         async function rechercher() {
-            const commune = document.getElementById('commune-input').value.trim();
+            const commune = document.getElementById('commune').value;
+            const div = document.getElementById('resultats');
+            
             if (!commune) return;
-
-            const resultsDiv = document.getElementById('results');
-            const loadingDiv = document.getElementById('loading');
+            div.innerHTML = 'Chargement...';
             
-            resultsDiv.innerHTML = '';
-            loadingDiv.style.display = 'block';
-
             try {
-                // Émissions GES par habitant
-                const gesData = await fetchIndicateur(
-                    'emission_ges_hab_com',
-                    'emission_ges_hab_com.id_2',
-                    'emission_ges_hab_com.libelle_commune,emission_ges_hab_com.annee',
-                    commune
-                );
-
-                // Aménagements cyclables
-                const veloData = await fetchIndicateur(
-                    'lineaire_cyclable_habitant_com',
-                    'lineaire_cyclable_habitant_com.id_133',
-                    'lineaire_cyclable_habitant_com.libelle_commune,lineaire_cyclable_habitant_com.annee',
-                    commune
-                );
-
-                loadingDiv.style.display = 'none';
-                afficherResultats(commune, gesData, veloData);
-
-            } catch (error) {
-                loadingDiv.style.display = 'none';
-                resultsDiv.innerHTML = `<div class="error">Erreur: ${error.message}</div>`;
+                const res = await fetch(`http://127.0.0.1:8000/indicateurs?commune=${commune}`);
+                const json = await res.json();
+                let html = `<h2>Résultats pour ${commune}</h2>`;
+                
+                // Énergie
+                html += '<h3>⚡ Consommation Énergie</h3>';
+                if (json.energie && json.energie.length > 0) {
+                    html += '<table><tr><th>Commune</th><th>Année</th><th>Valeur</th></tr>';
+                    json.energie.forEach(row => {
+                        const val = parseFloat(row['conso_enaf_com.id_611']) || 0;
+                        html += `<tr><td>${row['conso_enaf_com.libelle_commune']}</td><td>${row['conso_enaf_com.annee']}</td><td>${val.toFixed(2)}</td></tr>`;
+                    });
+                    html += '</table>';
+                } else {
+                    html += '<p>Pas de données</p>';
+                }
+                
+                // Eau
+                html += '<h3>💧 Prélèvement Eau</h3>';
+                if (json.eau && json.eau.length > 0) {
+                    html += '<table><tr><th>Commune</th><th>Année</th><th>Valeur</th></tr>';
+                    json.eau.forEach(row => {
+                        const val = parseFloat(row['prelevement_eau_usage_com.id_638']) || 0;
+                        html += `<tr><td>${row['prelevement_eau_usage_com.libelle_commune']}</td><td>${row['prelevement_eau_usage_com.annee']}</td><td>${val.toFixed(0)}</td></tr>`;
+                    });
+                    html += '</table>';
+                } else {
+                    html += '<p>Pas de données</p>';
+                }
+                
+                div.innerHTML = html;
+            } catch (e) {
+                div.innerHTML = '<p>Erreur de connexion à l\'API</p>';
             }
         }
-
-        async function fetchIndicateur(cube, measures, dimensions, commune) {
-            const url = `${API_BASE}/indicateurs/query?cube=${cube}&measures=${measures}&dimensions=${dimensions}&filters=${cube.split('.')[0]}.libelle_commune:equals:${encodeURIComponent(commune)}&limit=10`;
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('API non disponible');
-            return response.json();
-        }
-
-        function afficherResultats(commune, gesData, veloData) {
-            const resultsDiv = document.getElementById('results');
-            
-            let html = `<h2>Résultats pour ${commune}</h2>`;
-
-            // Émissions GES
-            html += '<div class="card">';
-            html += '<h3>🚨 Émissions GES par habitant</h3>';
-            if (gesData.data && gesData.data.length > 0) {
-                html += '<table><tr><th>Année</th><th>tCO2eq/hab</th></tr>';
-                gesData.data.forEach(row => {
-                    const annee = row['emission_ges_hab_com.annee'];
-                    const valeur = row['emission_ges_hab_com.id_2']?.toFixed(2) || 'N/A';
-                    html += `<tr><td>${annee}</td><td>${valeur}</td></tr>`;
-                });
-                html += '</table>';
-            } else {
-                html += '<p class="no-data">Pas de données disponibles</p>';
-            }
-            html += '</div>';
-
-            // Aménagements cyclables
-            html += '<div class="card">';
-            html += '<h3>🚲 Aménagements cyclables</h3>';
-            if (veloData.data && veloData.data.length > 0) {
-                html += '<table><tr><th>Année</th><th>km/1000 hab</th></tr>';
-                veloData.data.forEach(row => {
-                    const annee = row['lineaire_cyclable_habitant_com.annee'];
-                    const valeur = row['lineaire_cyclable_habitant_com.id_133']?.toFixed(2) || 'N/A';
-                    html += `<tr><td>${annee}</td><td>${valeur}</td></tr>`;
-                });
-                html += '</table>';
-            } else {
-                html += '<p class="no-data">Pas de données disponibles</p>';
-            }
-            html += '</div>';
-
-            resultsDiv.innerHTML = html;
-        }
-
-        // Recherche avec Enter
-        document.getElementById('commune-input').addEventListener('keypress', (e) => {
+        
+        document.getElementById('commune').addEventListener('keypress', e => {
             if (e.key === 'Enter') rechercher();
         });
     </script>
-
 </body>
 </html>
 

@@ -1,130 +1,53 @@
 body {
-    margin: 0;
     font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+    background: #f4f4f4;
+    margin: 0;
+    padding: 20px;
 }
 
 .container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 40px 20px;
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
 }
 
-h1 {
-    margin-bottom: 20px;
-    color: #2d5a27;
-}
+h1 { color: #2d5a27; }
+h2 { color: #333; margin-top: 20px; }
 
 .search-box {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 30px;
-}
-
-.search-box input {
-    padding: 12px 15px;
-    width: 300px;
-    font-size: 16px;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-}
-
-.search-box input:focus {
-    outline: none;
-    border-color: #2d5a27;
-}
-
-.search-box button {
-    padding: 12px 25px;
-    font-size: 16px;
-    cursor: pointer;
-    background-color: #2d5a27;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    transition: background-color 0.3s;
-}
-
-.search-box button:hover {
-    background-color: #1e3d1a;
-}
-
-.loading {
-    color: #666;
-    font-size: 18px;
     margin: 20px 0;
 }
 
-.results {
-    width: 100%;
-    max-width: 800px;
+.search-box input {
+    padding: 10px;
+    width: 200px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
 }
 
-.results h2 {
-    color: #333;
-    text-align: center;
-    margin-bottom: 20px;
+.search-box button {
+    padding: 10px 20px;
+    background: #2d5a27;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
-.card {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.card h3 {
-    margin: 0 0 15px 0;
-    color: #2d5a27;
-}
-
-.card table {
+table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 10px;
+    background: white;
 }
 
-.card th, .card td {
-    padding: 10px 15px;
+th, td {
+    padding: 10px;
+    border: 1px solid #ddd;
     text-align: left;
-    border-bottom: 1px solid #eee;
 }
 
-.card th {
-    background-color: #f8f9fa;
-    font-weight: 600;
-    color: #555;
-}
-
-.card tr:last-child td {
-    border-bottom: none;
-}
-
-.no-data {
-    color: #999;
-    font-style: italic;
-}
-
-.error {
-    background: #fee;
-    color: #c00;
-    padding: 15px;
-    border-radius: 8px;
-    text-align: center;
-}
-
-footer {
-    background-color: #222;
-    color: #fff;
-    text-align: center;
-    padding: 15px 0;
-    font-size: 14px;
-}
+th { background: #f0f0f0; }
 
 
 
