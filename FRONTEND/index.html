@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Indicateurs Écologiques</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
@@ -18,45 +19,137 @@
     </div>
 
     <script>
+        let charts = [];
+        
+        function createChart(canvasId, label, labels, data, color) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        backgroundColor: color,
+                        borderColor: color,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+            charts.push(chart);
+        }
+        
         async function rechercher() {
             const commune = document.getElementById('commune').value;
             const div = document.getElementById('resultats');
             
             if (!commune) return;
             div.innerHTML = 'Chargement...';
+            charts.forEach(c => c.destroy());
+            charts = [];
             
             try {
                 const res = await fetch(`http://127.0.0.1:8000/indicateurs?commune=${commune}`);
                 const json = await res.json();
                 let html = `<h2>Résultats pour ${commune}</h2>`;
                 
-                // Énergie
-                html += '<h3>⚡ Consommation Énergie</h3>';
-                if (json.energie && json.energie.length > 0) {
-                    html += '<table><tr><th>Commune</th><th>Année</th><th>Valeur</th></tr>';
-                    json.energie.forEach(row => {
-                        const val = parseFloat(row['conso_enaf_com.id_611']) || 0;
-                        html += `<tr><td>${row['conso_enaf_com.libelle_commune']}</td><td>${row['conso_enaf_com.annee']}</td><td>${val.toFixed(2)}</td></tr>`;
+                // Mobilité
+                html += '<div class="card"><h3>🚲 Mobilité - Aménagements cyclables</h3>';
+                if (json.mobilite && json.mobilite.length > 0) {
+                    html += '<canvas id="chartMobilite"></canvas>';
+                    html += '<table><tr><th>Année</th><th>Linéaire (km)</th></tr>';
+                    json.mobilite.forEach(row => {
+                        const val = parseFloat(row['lineaire_cyclable_habitant_com.id_839']) || 0;
+                        html += `<tr><td>${row['lineaire_cyclable_habitant_com.annee']}</td><td>${val.toFixed(2)} km</td></tr>`;
                     });
                     html += '</table>';
-                } else {
-                    html += '<p>Pas de données</p>';
-                }
+                } else { html += '<p>Pas de données</p>'; }
+                html += '</div>';
+                
+                // Énergie
+                html += '<div class="card"><h3>⚡ Énergie - Puissance électrique installée</h3>';
+                if (json.energie && json.energie.length > 0) {
+                    html += '<canvas id="chartEnergie"></canvas>';
+                    html += '<table><tr><th>Année</th><th>Puissance (MW)</th></tr>';
+                    json.energie.forEach(row => {
+                        const val = parseFloat(row['puissance_elec_installee_com.id_636']) || 0;
+                        html += `<tr><td>${row['puissance_elec_installee_com.annee']}</td><td>${val.toFixed(2)} MW</td></tr>`;
+                    });
+                    html += '</table>';
+                } else { html += '<p>Pas de données</p>'; }
+                html += '</div>';
+                
+                // GES
+                html += '<div class="card"><h3>🏭 Sobriété - Émissions GES par habitant</h3>';
+                if (json.ges && json.ges.length > 0) {
+                    html += '<canvas id="chartGES"></canvas>';
+                    html += '<table><tr><th>Année</th><th>Émissions (tCO2eq/hab)</th></tr>';
+                    json.ges.forEach(row => {
+                        const val = parseFloat(row['emission_ges_hab_com.id_2']) || 0;
+                        html += `<tr><td>${row['emission_ges_hab_com.annee']}</td><td>${val.toFixed(2)}</td></tr>`;
+                    });
+                    html += '</table>';
+                } else { html += '<p>Pas de données</p>'; }
+                html += '</div>';
+                
+                // Biodiversité
+                html += '<div class="card"><h3>🌳 Biodiversité - Séquestration CO2</h3>';
+                if (json.biodiversite && json.biodiversite.length > 0) {
+                    html += '<canvas id="chartBio"></canvas>';
+                    html += '<table><tr><th>Année</th><th>Séquestration (tCO2eq/an)</th></tr>';
+                    json.biodiversite.forEach(row => {
+                        const val = parseFloat(row['sequestr_nette_co2_com.id_615']) || 0;
+                        html += `<tr><td>${row['sequestr_nette_co2_com.annee']}</td><td>${val.toLocaleString()}</td></tr>`;
+                    });
+                    html += '</table>';
+                } else { html += '<p>Pas de données</p>'; }
+                html += '</div>';
                 
                 // Eau
-                html += '<h3>💧 Prélèvement Eau</h3>';
+                html += '<div class="card"><h3>💧 Eau - Prélèvements</h3>';
                 if (json.eau && json.eau.length > 0) {
-                    html += '<table><tr><th>Commune</th><th>Année</th><th>Valeur</th></tr>';
+                    html += '<canvas id="chartEau"></canvas>';
+                    html += '<table><tr><th>Année</th><th>Volume (m³)</th></tr>';
                     json.eau.forEach(row => {
                         const val = parseFloat(row['prelevement_eau_usage_com.id_638']) || 0;
-                        html += `<tr><td>${row['prelevement_eau_usage_com.libelle_commune']}</td><td>${row['prelevement_eau_usage_com.annee']}</td><td>${val.toFixed(0)}</td></tr>`;
+                        html += `<tr><td>${row['prelevement_eau_usage_com.annee']}</td><td>${val.toLocaleString()}</td></tr>`;
                     });
                     html += '</table>';
-                } else {
-                    html += '<p>Pas de données</p>';
-                }
+                } else { html += '<p>Pas de données</p>'; }
+                html += '</div>';
                 
                 div.innerHTML = html;
+                
+                // Créer les graphiques
+                if (json.mobilite && json.mobilite.length > 0) {
+                    const labels = json.mobilite.map(r => r['lineaire_cyclable_habitant_com.annee']).reverse();
+                    const data = json.mobilite.map(r => parseFloat(r['lineaire_cyclable_habitant_com.id_839']) || 0).reverse();
+                    createChart('chartMobilite', 'km', labels, data, '#4CAF50');
+                }
+                if (json.energie && json.energie.length > 0) {
+                    const labels = json.energie.map(r => r['puissance_elec_installee_com.annee']).reverse();
+                    const data = json.energie.map(r => parseFloat(r['puissance_elec_installee_com.id_636']) || 0).reverse();
+                    createChart('chartEnergie', 'MW', labels, data, '#FF9800');
+                }
+                if (json.ges && json.ges.length > 0) {
+                    const labels = json.ges.map(r => r['emission_ges_hab_com.annee']).reverse();
+                    const data = json.ges.map(r => parseFloat(r['emission_ges_hab_com.id_2']) || 0).reverse();
+                    createChart('chartGES', 'tCO2eq/hab', labels, data, '#F44336');
+                }
+                if (json.biodiversite && json.biodiversite.length > 0) {
+                    const labels = json.biodiversite.map(r => r['sequestr_nette_co2_com.annee']).reverse();
+                    const data = json.biodiversite.map(r => parseFloat(r['sequestr_nette_co2_com.id_615']) || 0).reverse();
+                    createChart('chartBio', 'tCO2eq/an', labels, data, '#8BC34A');
+                }
+                if (json.eau && json.eau.length > 0) {
+                    const labels = json.eau.map(r => r['prelevement_eau_usage_com.annee']).reverse();
+                    const data = json.eau.map(r => parseFloat(r['prelevement_eau_usage_com.id_638']) || 0).reverse();
+                    createChart('chartEau', 'm³', labels, data, '#2196F3');
+                }
             } catch (e) {
                 div.innerHTML = '<p>Erreur de connexion à l\'API</p>';
             }

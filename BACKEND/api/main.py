@@ -25,13 +25,17 @@ async def root():
 
 async def query_cube(client, headers, cube: str, measure: str, commune: str):
     """Helper pour requêter un cube."""
+    # Essayer d'abord une recherche exacte (insensible à la casse)
+    commune_formatted = commune.strip().title()
+    
     query = {
         "measures": [measure],
         "dimensions": [f"{cube}.libelle_commune", f"{cube}.annee"],
         "filters": [
-            {"member": f"{cube}.libelle_commune", "operator": "contains", "values": [commune]},
+            {"member": f"{cube}.libelle_commune", "operator": "equals", "values": [commune_formatted]},
             {"member": f"{cube}.annee", "operator": "gte", "values": ["2020"]}
         ],
+        "order": [[f"{cube}.annee", "desc"]],
         "limit": 10
     }
     response = await client.get(
@@ -55,10 +59,25 @@ async def get_indicateurs(commune: str = Query(..., description="Nom de la commu
     headers = {"Authorization": f"Bearer {token}"}
     
     async with httpx.AsyncClient() as client:
-        # Consommation énergie
-        energie = await query_cube(client, headers, "conso_enaf_com", "conso_enaf_com.id_611", commune)
+        # Mobilité - Aménagements cyclables
+        mobilite = await query_cube(client, headers, "lineaire_cyclable_habitant_com", "lineaire_cyclable_habitant_com.id_839", commune)
         
-        # Prélèvement eau
+        # Énergie - Puissance électrique installée
+        energie = await query_cube(client, headers, "puissance_elec_installee_com", "puissance_elec_installee_com.id_636", commune)
+        
+        # Sobriété - Émissions GES par habitant
+        ges = await query_cube(client, headers, "emission_ges_hab_com", "emission_ges_hab_com.id_2", commune)
+        
+        # Biodiversité - Séquestration CO2
+        biodiversite = await query_cube(client, headers, "sequestr_nette_co2_com", "sequestr_nette_co2_com.id_615", commune)
+        
+        # Eau - Prélèvements
         eau = await query_cube(client, headers, "prelevement_eau_usage_com", "prelevement_eau_usage_com.id_638", commune)
         
-        return {"energie": energie, "eau": eau}
+        return {
+            "mobilite": mobilite,
+            "energie": energie,
+            "ges": ges,
+            "biodiversite": biodiversite,
+            "eau": eau
+        }
