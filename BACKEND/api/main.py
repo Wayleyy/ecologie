@@ -20,7 +20,7 @@ CUBEJS_API = "https://api.indicateurs.ecologie.gouv.fr/cubejs-api/v1"
 
 @app.get("/")
 async def root():
-    return {"message": "API Écologie", "docs": "/docs"}
+    return {"message": "API Ecologie", "docs": "/docs"}
 
 
 async def query_cube(client, headers, cube: str, measure: str, commune: str):
@@ -81,3 +81,9 @@ async def get_indicateurs(commune: str = Query(..., description="Nom de la commu
             "biodiversite": biodiversite,
             "eau": eau
         }
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
