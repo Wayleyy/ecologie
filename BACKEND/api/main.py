@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import httpx
 import os
 from dotenv import load_dotenv
+import uvicorn
 
 load_dotenv()
 
@@ -84,6 +85,4 @@ async def get_indicateurs(commune: str = Query(..., description="Nom de la commu
 
 
 if __name__ == "__main__":
-    import uvicorn
-
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
